@@ -1,0 +1,23 @@
+Immunomics=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.txt *.conf" {
+ workflow.rb
+ bin=bin filter="*"{
+ }
+ lib=lib {
+  Immunomics=Immunomics{
+   sources=sources{
+   }
+   tasks=tasks{
+    epitopes.rb
+    epitopes_old.rb
+    processing.rb
+    presentation.rb
+    sample.rb
+   }
+  }
+ }
+ test=test {
+  test_helper.rb
+ }
+ data=data filter="*"{
+ }
+}
