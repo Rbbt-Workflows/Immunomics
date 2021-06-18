@@ -11,6 +11,7 @@ Immunomics=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass
     epitopes_old.rb
     processing.rb
     presentation.rb
+    expression.rb
     sample.rb
    }
   }

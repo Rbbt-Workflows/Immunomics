@@ -13,6 +13,7 @@ end
 require 'Immunomics/tasks/epitopes'
 require 'Immunomics/tasks/processing'
 require 'Immunomics/tasks/presentation'
+require 'Immunomics/tasks/expression'
 
 #require 'rbbt/knowledge_base/Immunomics'
 #require 'rbbt/entity/Immunomics'
