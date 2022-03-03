@@ -20,4 +20,5 @@ require 'Immunomics/tasks/expression'
 
 if defined? Sample
   require 'Immunomics/tasks/sample'
+  require 'Immunomics/tasks/adhoc'
 end

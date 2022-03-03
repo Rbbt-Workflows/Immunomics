@@ -2,7 +2,7 @@ module Sample
 
   dep :stringtie
   input :abundancy_field, :select, "Abundancy field to extract from stringtie", "FPKM", :select_options => %w(FPKM TMP)
-  task :gene_abundancies => :tsv do |abundancy_field|
+  task :stringtie_gene_abundancies => :tsv do |abundancy_field|
 
     dumper = TSV::Dumper.new :key_field => "Ensembl Transcript ID", :fields => [abundancy_field], :type => :single, :cast => :to_f 
     dumper.init
@@ -31,10 +31,56 @@ module Sample
     end
   end
 
-  dep :gene_abundancies
+  dep :kallisto
+  task :kallisto_gene_abundancies => :tsv do 
+
+    dumper = TSV::Dumper.new :key_field => "Ensembl Transcript ID", :fields => ["TPM"], :type => :single, :cast => :to_f 
+    dumper.init
+    TSV.traverse step(:kallisto), :into => dumper, :type => :array do |line|
+      next if line =~ /^#/
+      parts = line.split("\t")
+      transcript = parts.first.split(".").first
+      tpm = parts[4]
+
+      [transcript, tpm]
+    end
+  end
+
+  dep :salmon
+  task :salmon_gene_abundancies => :tsv do 
+
+    dumper = TSV::Dumper.new :key_field => "Ensembl Transcript ID", :fields => ["TPM"], :type => :single, :cast => :to_f 
+    dumper.init
+    TSV.traverse step(:salmon), :into => dumper, :type => :array do |line|
+      next if line =~ /^#/
+      parts = line.split("\t")
+      transcript = parts.first.split(".").first
+      tpm = parts[4]
+
+      [transcript, tpm]
+    end
+  end
+
+
+  input :count_method, :select, "Count or quantification method for RNA-seq", :stringtie, :select_options => %w(stringtie salmon kallisto)
+  dep :stringtie_gene_abundancies do |jobname, options,dependencies|
+    task = case options[:count_method]
+           when 'stringtie'
+             'stringtie_gene_abundancies'
+           when 'salmon'
+             'salmon_gene_abundancies'
+           when 'kallisto'
+             'kallisto_gene_abundancies'
+           end
+
+    {:task => task, :inputs => options, :jobname => jobname}
+  end
   dep :organism
   dep :mi, :organism => :organism
-  dep_task :mi_expression, Immunomics, :mi_expression, :gene_abundancies => :gene_abundancies, :organism => :organism, :mutated_isoforms => :mi
+  dep_task :mi_expression, Immunomics, :mi_expression, :gene_abundancies => :placeholder, :organism => :organism, :mutated_isoforms => :mi do |jobname,options,dependencies|
+    gene_abundancies = dependencies.flatten.first
+    {:inputs => options.merge(:gene_abundancies => gene_abundancies), :jobname => jobname}
+  end
 
   dep :genomic_mutations
   dep :RNA_BAM
@@ -80,7 +126,7 @@ module Sample
 
   end
 
-  %w(epitopes netchop tapmat_pred_fsa processed_epitopes mhcFlurry).each do |task_name|
+  %w(epitopes netchop tapmat_pred_fsa processed_epitopes mhcFlurry mutation_flanking_sequence).each do |task_name|
     dep :organism
     dep :mi, :organism => :organism
     dep_task task_name.to_sym, Immunomics, task_name.to_sym, :mutated_isoforms => :mi, :organism => :organism
@@ -91,8 +137,19 @@ module Sample
   dep :mi_expression, :compute => :produce, :canfail => true
   dep :mi_rna_evidence, :compute => :produce, :canfail => true
   dep :mi_prevalence, :compute => :produce, :canfail => true
+  dep :mutation_flanking_sequence
   task :epitope_info => :tsv do
     processed_epitopes = step(:processed_epitopes).load
+
+    ensp2name = Organism.identifiers(organism).index :target => "Associated Gene Name", :persist => true
+    processed_epitopes.add_field "Associated Gene Name" do |mi,values|
+      ensp = mi.split(":").first
+      name = ensp2name[ensp] || "MISSING"
+      name
+    end
+
+    processed_epitopes = processed_epitopes.attach step(:mutation_flanking_sequence)
+
     mhcFlurry_mut = step(:mhcFlurry).path.tsv :key_field => "Mutated epitope", :merge => true, :type => :double
     mhcFlurry_wt = step(:mhcFlurry).path.tsv :key_field => "Wildtype epitope", :merge => true, :type => :double
 
@@ -121,7 +178,7 @@ module Sample
 
     if mi_expression
       processed_epitopes.add_field mi_expression.fields.first do |k,values|
-        [mi_expression[k] || 0] * values.first.length
+        [mi_expression.include?(k) ? mi_expression[k] : 0  ] * values.first.length
       end
     end
 
@@ -143,11 +200,31 @@ module Sample
       end
     end
 
-
-
-
     processed_epitopes
   end
+
+  dep :epitope_info
+  task :by_epitope => :tsv do 
+    parser = TSV::Parser.new step(:epitope_info)
+    options = parser.options
+    options[:type] = :list
+    options[:key_field] = options[:key_field] + ":Size:Offset"
+    dumper = TSV::Dumper.new options
+    dumper.init 
+    offset_pos = parser.fields.index "Offset"
+    TSV.traverse parser, :into => dumper do |key,zvalues|
+      res = Misc.zip_fields(zvalues).collect do |values|
+        size = values.first.length
+        offset = values[offset_pos]
+        nkey = [key, size, offset] * ":"
+        [nkey, values]
+      end
+      res.extend MultipleResult
+      res
+    end
+
+  end
+
 
 
 end

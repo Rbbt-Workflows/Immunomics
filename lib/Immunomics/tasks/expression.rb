@@ -8,10 +8,9 @@ module Immunomics
     ensp2enst = Organism.transcripts(organism).tsv :key_field => "Ensembl Protein ID", :fields => "Ensembl Transcript ID", :type => :single, :persist => true
     enst2ensg = Organism.transcripts(organism).tsv :key_field => "Ensembl Transcript ID", :fields => "Ensembl Gene ID", :type => :single, :persist => true
 
-    Log.tsv gene_abundancies
     gene_abundancies = gene_abundancies.change_key "Ensembl Gene ID", :identifiers => Organism.transcripts(organism)  if match_expression == 'gene'
 
-    dumper = TSV::Dumper.new :key_field => "Epitope", :fields => [gene_abundancies.fields.first], :type => :flat, :cast => :to_f
+    dumper = TSV::Dumper.new :key_field => "Epitope", :fields => gene_abundancies.fields, :type => :flat, :cast => :to_f
     dumper.init
     TSV.traverse mis, :into => dumper do |mi|
       protein = mi.split(":").first
