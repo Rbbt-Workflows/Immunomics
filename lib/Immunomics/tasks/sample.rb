@@ -134,9 +134,9 @@ module Sample
 
   dep :processed_epitopes, :compute => :produce
   dep :mhcFlurry, :compute => :produce
-  dep :mi_expression, :compute => :produce, :canfail => true
-  dep :mi_rna_evidence, :compute => :produce, :canfail => true
-  dep :mi_prevalence, :compute => :produce, :canfail => true
+  dep :mi_expression, :compute => :canfail, :canfail => true
+  dep :mi_rna_evidence, :compute => :canfail, :canfail => true
+  dep :mi_prevalence, :compute => :canfail, :canfail => true
   dep :mutation_flanking_sequence
   task :epitope_info => :tsv do
     processed_epitopes = step(:processed_epitopes).load
