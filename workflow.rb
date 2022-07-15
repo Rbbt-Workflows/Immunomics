@@ -5,9 +5,9 @@ Misc.add_libdir if __FILE__ == $0
 
 #require 'rbbt/sources/Immunomics'
 #
+Workflow.require_workflow "Sample"
 Workflow.require_workflow "Sequence"
 Workflow.require_workflow "HTS"
-Workflow.require_workflow "Sample"
 
 module Immunomics
   extend Workflow
