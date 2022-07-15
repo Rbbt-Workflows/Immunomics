@@ -97,7 +97,8 @@ module Immunomics
   dep :mutation_flanking_sequence, :compute => :produce
   input :sizes, :array, "Peptide size", [9]
   task :epitopes => :tsv do |sizes|
-    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => ["Wildtype", "Mutated",  "Offset"], :type => :double
+    organism = self.recursive_inputs[:organism]
+    dumper = TSV::Dumper.new :key_field => "Mutated Isoform", :fields => ["Wildtype", "Mutated",  "Offset"], :type => :double, :namespace => organism
     dumper.init
     TSV.traverse step(:mutation_flanking_sequence), :into => dumper do |mi,info|
       mi = mi.first if Array === mi
