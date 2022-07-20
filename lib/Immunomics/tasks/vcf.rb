@@ -13,6 +13,6 @@ module Immunomics
   dep Sequence, :genomic_mutations, :quality => nil, :filters => []
   dep_task :vcf_open_epitopes, Immunomics, :open_epitopes, :mutations => :genomic_mutations
 
-  dep Sequence, :genomic_mutations
+  dep Sequence, :genomic_mutations, :quality => nil, :filters => []
   dep_task :vcf_open_intron_epitopes, Immunomics, :open_intron_epitopes, :mutations => :genomic_mutations
 end

@@ -127,10 +127,12 @@ module Immunomics
   end
 
   dep :mutation_open_frames
-  dep_task :open_epitopes, Immunomics, :epitopes, "Immunomics#mutation_flanking_sequence" => :mutation_open_frames
+  dep_task :open_epitopes, Immunomics, :epitopes,
+    "Immunomics#mutation_flanking_sequence" => :mutation_open_frames,
+    :flank_size => nil, :mutated_isoforms => nil, :sizes => nil
 
   dep :open_epitopes
-  dep Sequence, :genes, :positions => :mutations  
+  dep Sequence, :genes, :positions => :mutations, :vcf => false
   dep Sequence, :mutated_isoforms_fast, :coding => true, :non_synonymous => false, :principal => false, :watson => true, :vcf => false
   task :open_intron_epitopes => :tsv do 
     Step.wait_for_jobs dependencies
