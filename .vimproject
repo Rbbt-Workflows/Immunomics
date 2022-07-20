@@ -8,6 +8,7 @@ Immunomics=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass
    }
    tasks=tasks{
     epitopes.rb
+    intron.rb
     epitopes_old.rb
     processing.rb
     presentation.rb

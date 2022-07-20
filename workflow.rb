@@ -15,6 +15,7 @@ module Immunomics
 end
 
 require 'Immunomics/tasks/epitopes'
+require 'Immunomics/tasks/intron'
 require 'Immunomics/tasks/processing'
 require 'Immunomics/tasks/presentation'
 require 'Immunomics/tasks/expression'
