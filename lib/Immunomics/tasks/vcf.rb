@@ -10,4 +10,9 @@ module Immunomics
   dep :vcf_mis
   dep_task :vcf_epitopes, Immunomics, :epitopes, :mutated_isoforms => :vcf_mis, :flank_size => 20
 
+  dep Sequence, :genomic_mutations
+  dep_task :vcf_open_epitopes, Immunomics, :open_epitopes, :mutations => :genomic_mutations
+
+  dep Sequence, :genomic_mutations
+  dep_task :vcf_open_intron_epitopes, Immunomics, :open_intron_epitopes, :mutations => :genomic_mutations
 end
