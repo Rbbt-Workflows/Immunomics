@@ -78,7 +78,7 @@ module Immunomics
   end
 
   input :sizes, :array, "Size of epitope", [9]
-  dep :mutation_dna_sequences do |jobname,options|
+  dep :mutation_dna_sequences, :flank_size => :placeholder do |jobname,options|
     max_size = options[:sizes].collect{|s| s.to_i }.max
     {:inputs => options.merge(:flank_size => (max_size + 2) * 3)}
   end
@@ -130,8 +130,8 @@ module Immunomics
   dep_task :open_epitopes, Immunomics, :epitopes, "Immunomics#mutation_flanking_sequence" => :mutation_open_frames
 
   dep :open_epitopes
-  dep Sequence, :genes do |jobname,options| {:inputs => options.merge(:positions => options[:mutations]) } end
-  dep Sequence, :mutated_isoforms_fast
+  dep Sequence, :genes, :positions => :mutations  
+  dep Sequence, :mutated_isoforms_fast, :coding => true, :non_synonymous => false, :principal => false, :watson => true, :vcf => false
   task :open_intron_epitopes => :tsv do 
     Step.wait_for_jobs dependencies
     genes = step(:genes).load
@@ -143,7 +143,7 @@ module Immunomics
     parser = TSV::Parser.new step(:open_epitopes)
     dumper = TSV::Dumper.new parser.options.merge(:fields => parser.fields + ["Ensembl Gene ID"])
     dumper.init
-    TSV.traverse parser, :into => dumper do |key,values|
+    TSV.traverse parser, :bar => self.progress_bar("Selecting intron mutations"), :into => dumper do |key,values|
       key = key.first if Array === key
       parts = key.split(":")
       strand = parts[1] == "+" ? "1" : "-1"

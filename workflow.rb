@@ -28,3 +28,5 @@ if defined? Sample
   require 'Immunomics/tasks/sample'
   require 'Immunomics/tasks/adhoc'
 end
+
+Immunomics.export :vcf_epitopes, :vcf_open_epitopes, :vcf_open_intron_epitopes
