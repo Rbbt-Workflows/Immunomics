@@ -4,6 +4,9 @@ Immunomics=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass
  }
  lib=lib {
   Immunomics=Immunomics{
+   tools=tools{
+    netcleave.rb
+   }
    sources=sources{
    }
    tasks=tasks{

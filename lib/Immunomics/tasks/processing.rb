@@ -1,9 +1,19 @@
 require 'rbbt/sources/organism'
 module Immunomics
 
+
+  Rbbt.claim Rbbt.software.opt["netCTLpan-1.1"], :proc do |filename|
+    raise "Download netCTLpan into #{filename}"
+  end
+
+  Rbbt.claim Rbbt.software.opt["netchop-3.1"], :proc do |filename|
+    raise "Download netchop into #{filename}"
+  end
+
+
   def self.netchop(file)
     cuts = {}
-    TSV.traverse CMD.cmd("#{Rbbt.software.opt["netchop-3.1"].netchop.find} '#{file}'", :pipe => true), :type => :line do |line|
+    TSV.traverse CMD.cmd("#{Rbbt.software.opt["netchop-3.1"].produce.netchop.find} '#{file}'", :pipe => true), :type => :line do |line|
       next unless (line.include?("wt|") || line.include?("mu|")) && ! line.include?("Number of")
       parts = line.split(/\s+/)
       next unless parts[3] == "S"
@@ -16,7 +26,7 @@ module Immunomics
 
   def self.tapmat_pred_fsa(file, size)
     scores = {}
-    TSV.traverse CMD.cmd("#{Rbbt.software.opt["netCTLpan-1.1"].Linux_x86_64.bin.tapmat_pred_fsa.find} -mat '#{Rbbt.software.opt["netCTLpan-1.1"].data["tap.logodds.mat"].find}' '#{file}' -l #{size}", :pipe => true), :type => :line do |line|
+    TSV.traverse CMD.cmd("#{Rbbt.software.opt["netCTLpan-1.1"].produce.Linux_x86_64.bin.tapmat_pred_fsa.find} -mat '#{Rbbt.software.opt["netCTLpan-1.1"].produce.data["tap.logodds.mat"].find}' '#{file}' -l #{size}", :pipe => true), :type => :line do |line|
       next if line =~ /^#/
       parts = line.split(/\s+/)
       scores[parts[2]] = parts[3]
